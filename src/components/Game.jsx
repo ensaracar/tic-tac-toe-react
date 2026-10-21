@@ -6,7 +6,7 @@ class Game extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            gameMode: 1, // 2 players default mode
+            gameMode: 2, // AI default mode
             history: [
                 {
                     squares: Array(9).fill(null),
