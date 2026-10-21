@@ -1,5 +1,5 @@
 import React from 'react';
-import {calculateWinner, findBestSquare, isBoardFilled} from "../helpers";
+import {calculateWinner, findBestSquare, getWinningLine, isBoardFilled} from "../helpers";
 import Board from './Board'
 
 class Game extends React.Component {
@@ -41,7 +41,7 @@ class Game extends React.Component {
         };
 
         // Return a Promise that resolves when setState completes.
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.setState(nextState, resolve);
         });
     }
@@ -72,11 +72,9 @@ class Game extends React.Component {
     }
 
     gameMode(mode) {
-        console.log(mode)
         this.setState({
             gameMode: mode
         });
-
     }
 
     resetGame() {
@@ -98,42 +96,75 @@ class Game extends React.Component {
         const history = this.state.history;
         const current = history[this.state.stepNumber];
         const winner = calculateWinner(current.squares);
+        const winningLine = getWinningLine(current.squares);
+        const draw = !winner && isBoardFilled(current.squares);
         const moves = history.map((step, move) => {
-            const desc = move ? 'Go to move #' + move : 'Go to game start';
+            const desc = move ? `Move ${move}` : 'Start';
             return (
                 <li key={move}>
-                    <button onClick={() => this.jumpTo(move)}>{desc}</button>
+                    <button
+                        className={move === this.state.stepNumber ? 'is-current' : ''}
+                        onClick={() => this.jumpTo(move)}
+                    >
+                        {desc}
+                    </button>
                 </li>
             );
         });
 
         let status;
+        let statusClass = 'status';
         if (winner) {
-            status = "Winner: " + winner;
-        }
-        else if (isBoardFilled(current.squares)) {
-            status = "Draw!";
+            status = `${winner} wins`;
+            statusClass += ' status--win';
+        } else if (draw) {
+            status = 'Draw';
+            statusClass += ' status--draw';
         } else {
-            status = "Next player: " + (this.state.xIsNext ? "X" : "O");
+            status = `${this.state.xIsNext ? 'X' : 'O'} to play`;
+            statusClass += this.state.xIsNext ? ' status--x' : ' status--o';
         }
 
         return (
-            <div className="game">
-                <div className="game-board">
-                    <Board
-                        squares={current.squares}
-                        onClick={i => this.handleClick(i)}
-                    />
-                </div>
-                <div className="game-info">
-                    <div>{status}</div>
-                    <ol>{moves}</ol>
-                </div>
+            <div className="app">
+                <header className="app-header">
+                    <p className="eyebrow">Tabletop classic</p>
+                    <h1>Tic Tac Toe</h1>
+                </header>
 
-                <div className="game-type">
-                    <button onClick={() => this.gameMode(1)}>2 Player</button>
-                    <button onClick={() => this.gameMode(2)}>Versus AI</button>
-                    <button onClick={() => this.resetGame()}>Reset Board</button>
+                <div className="game">
+                    <section className="panel panel--board">
+                        <div className={statusClass}>{status}</div>
+                        <Board
+                            squares={current.squares}
+                            winningLine={winningLine}
+                            onClick={i => this.handleClick(i)}
+                        />
+                    </section>
+
+                    <aside className="panel panel--side">
+                        <div className="modes" role="group" aria-label="Game mode">
+                            <button
+                                className={this.state.gameMode === 1 ? 'is-active' : ''}
+                                onClick={() => this.gameMode(1)}
+                            >
+                                2 Player
+                            </button>
+                            <button
+                                className={this.state.gameMode === 2 ? 'is-active' : ''}
+                                onClick={() => this.gameMode(2)}
+                            >
+                                Versus AI
+                            </button>
+                        </div>
+                        <button className="reset" onClick={() => this.resetGame()}>
+                            Reset board
+                        </button>
+                        <div className="history">
+                            <h2>Moves</h2>
+                            <ol>{moves}</ol>
+                        </div>
+                    </aside>
                 </div>
             </div>
         );
