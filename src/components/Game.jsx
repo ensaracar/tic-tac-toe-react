@@ -79,7 +79,7 @@ class Game extends React.Component {
 
     resetGame() {
         this.setState({
-            gameMode: 1,
+            gameMode: 2,
             history: [
                 {
                     squares: Array(9).fill(null),
